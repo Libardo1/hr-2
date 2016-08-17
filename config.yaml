@@ -1,0 +1,30 @@
+# -*- conding = utf-8 -*-
+
+dir:
+  data: data
+
+projects:
+  file: project_list.xls
+
+costs:
+  file: hr_stat_p.xls
+
+
+sheets:
+  cost: 人力成本
+  load: 人力统计
+
+colnames:
+  xm: 姓名
+  lxbh: 立项编号
+  xmmc: 项目名称
+  zbbm: 主办部门
+  tjrq: 统计日期
+  fhbl: 负荷比例
+  zybm: 资源部门
+  cbzq: 成本周期
+  hjcb: 合计成本
+  jjxs: 奖金系数
+
+colvalue:
+  bn: 半年
