@@ -650,6 +650,7 @@ def queuehandler():
 
                 if func_name == "upload-work":
                     print func_name
+                    print object_key[len(object_key) - 4]
                     if object_key[len(object_key)-4] == ".zip":
                         print "zip"
                         calc_work_zip(bucket_name, object_key)
