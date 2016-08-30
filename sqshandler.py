@@ -622,19 +622,20 @@ def queuehandler():
     # Process messages by printing out body and optional author name
     while True:
         messages = queue.receive_messages(MessageAttributeNames=['Function','Bucket'])
+        now = int(time.time())
+        timeArray = time.localtime(now)
+        otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
+
         #
 
         if not len(messages) > 0 :
-            now = int(time.time())
-
-            timeArray = time.localtime(now)
-            otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
 
             print "break " + str(len(messages)) + " @ " + otherStyleTime
 
             break
 
         for message in messages:
+            print "receive " + str(len(messages)) + " @ " + otherStyleTime
 
             #try:
             if True:
