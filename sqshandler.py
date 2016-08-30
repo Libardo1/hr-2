@@ -654,7 +654,8 @@ def queuehandler():
                         calc_cost_zip(bucket_name, object_key)
                     elif object_key[len(object_key) - 5] == ".xlsx":
                         calc_cost_xlsx(bucket_name, object_key)
-
+                else:
+                    print "NULL"
 
                 #print (func_name,  object_key)
 
