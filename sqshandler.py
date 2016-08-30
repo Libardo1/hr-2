@@ -651,19 +651,19 @@ def queuehandler():
                 if func_name == "upload-work":
                     print func_name
                     print object_key[len(object_key) - 4]
-                    if object_key[len(object_key)-4] == ".zip":
+                    if object_key[len(object_key)-4:] == ".zip":
                         print "zip"
                         calc_work_zip(bucket_name, object_key)
-                    elif object_key[len(object_key)-5] == ".xlsx":
+                    elif object_key[len(object_key)-5:] == ".xlsx":
                         print "xlsx"
                         calc_work_xlsx(bucket_name, object_key)
 
                 elif func_name == "upload-cost":
                     print func_name
-                    if object_key[len(object_key) - 4] == ".zip":
+                    if object_key[len(object_key) - 4:] == ".zip":
                         print "zip"
                         calc_cost_zip(bucket_name, object_key)
-                    elif object_key[len(object_key) - 5] == ".xlsx":
+                    elif object_key[len(object_key) - 5:] == ".xlsx":
                         print "xlsx"
                         calc_cost_xlsx(bucket_name, object_key)
                 else:
