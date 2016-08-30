@@ -59,7 +59,8 @@ def calc_work_zip(Bucket = "", key = ""):
 
     #path = obj.key.split("/")
 
-    filename = obj.key[len("upload/work/")-1:]
+    filename = key[len("upload/work/")-1:]
+    print filename
     tmpfile = os.path.join(tmp_dir, filename)
     obj.download_file(tmpfile)
 
