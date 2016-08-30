@@ -625,7 +625,12 @@ def queuehandler():
         #
 
         if not len(messages) > 0 :
-            print "break " + str(len(messages))
+            now = int(time.time())
+
+            timeArray = time.localtime(now)
+            otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
+
+            print "break " + str(len(messages) + " @ " +otherStyleTime)
             break
 
         for message in messages:
@@ -668,7 +673,7 @@ def main():
         queuehandler()
         yaml_obj = yaml.load(open('config.yaml'))
         timer = int(yaml_obj.get('timer')['sqshandler'])
-        print timer
+        #print timer
         time.sleep(timer)
 
 if __name__ == '__main__':
