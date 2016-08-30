@@ -48,6 +48,8 @@ def sendmessage(Body= ""):
 
 
 def calc_work_zip(Bucket = "", key = ""):
+    print "calc_work_zip"
+
     bucket = s3.Bucket(Bucket)
     obj = s3.Object(Bucket,key)
 
@@ -59,6 +61,8 @@ def calc_work_zip(Bucket = "", key = ""):
     filename = path[len(path)-1]
     tmpfile = os.path.join(tmp_dir, filename)
     obj.download_file(tmpfile)
+
+
 
     zFile = zipfile.ZipFile(tmpfile, 'r')
     for filename in zFile.namelist():
