@@ -57,8 +57,9 @@ def calc_work_zip(Bucket = "", key = ""):
     tmp_dir = yaml_obj.get('dir')['tmp']
     data_dir = yaml_obj.get('dir')['data']
 
-    path = obj.key.split("/")
-    filename = path[len(path)-1]
+    #path = obj.key.split("/")
+
+    filename = obj.key[len("upload/work/")-1:]
     tmpfile = os.path.join(tmp_dir, filename)
     obj.download_file(tmpfile)
 
