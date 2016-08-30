@@ -630,7 +630,8 @@ def queuehandler():
             timeArray = time.localtime(now)
             otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
 
-            print "break " + str(len(messages) + " @ " +otherStyleTime)
+            print "break " + str(len(messages)) + " @ " + otherStyleTime
+
             break
 
         for message in messages:
