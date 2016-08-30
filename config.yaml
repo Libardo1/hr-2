@@ -2,6 +2,7 @@
 
 dir:
   data: data
+  tmp: tmp
 
 projects:
   file: project_list.xls
@@ -13,6 +14,40 @@ costs:
 sheets:
   cost: 人力成本
   load: 人力统计
+  prolist:
+    sheetname: 公司立项清单
+    colnames:
+      lxbh: 立项编号
+      xmmc: 项目名称
+      zbbm: 主办部门
+  divlist:
+    sheetname: 部门清单
+    colnames:
+      bm: 部门
+      sx: 拼音缩写
+  loadpercent:
+    sheetname: 工作量百分比
+    row_offset: 2
+    col_offset: 6
+    bm_col: 2
+    rq_col: 4
+    clonames:
+      xm: 姓名
+      lxbh: 立项编号
+      xmmc: 项目名称
+      zbbm: 主办部门
+      tjrq: 统计日期
+      fhbl: 负荷比例
+      zybm: 资源部门
+  loadcalc:
+    colnames:
+      xm: 姓名
+      lxbh: 立项编号
+      xmmc: 项目名称
+      zbbm: 主办部门
+      tjrq: 统计日期
+      fhbl: 负荷比例
+      zybm: 资源部门
 
 colnames:
   xm: 姓名
@@ -28,3 +63,6 @@ colnames:
 
 colvalue:
   bn: 半年
+
+timer:
+  sqshandler: 10
