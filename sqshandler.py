@@ -642,6 +642,7 @@ def queuehandler():
                 func_name = message.message_attributes['Function']['StringValue']
                 bucket_name = message.message_attributes['Bucket']['StringValue']
                 object_key = message.body
+                print (func_name, bucket_name, object_key)
                 if func_name == "upload-work":
                     if object_key[len(object_key)-4] == ".zip":
                         calc_work_zip(bucket_name, object_key)
