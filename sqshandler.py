@@ -570,6 +570,13 @@ def calc_cost_zip(Bucket = "", key = ""):
             #df.to_csv(os.path.join(data_dir, 'hr_gbk.csv'), encoding='gbk', index=False)
 
 
+def clear_objects(bucket_name):
+    bucket = s3.Bucket(bucket_name)
+    object_summary_iterator = bucket.objects.all()
+    for obj in object_summary_iterator:
+        if obj.key[len(obj.key)-1] != "/":
+            print obj.key
+            obj.delete()
 
 def queuehandler():
     # Process messages by printing out body and optional author name
@@ -617,6 +624,8 @@ def queuehandler():
                     elif object_key[len(object_key) - 5:] == ".xlsx":
                         print "xlsx"
                         calc_cost_xlsx(bucket_name, object_key)
+                elif func_name == "ctrl-clear":
+                    clear_objects(bucket_name)
                 else:
                     print "NULL"
 
