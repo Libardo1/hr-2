@@ -47,26 +47,28 @@ def sendmessage(Body= ""):
     })
 
 
-def calc_work_xlsx(Bucket = "", key = "", xlsxfile = ""):
+def calc_work_xlsx( BucketName , ObjKey , xlsxfile ):
 
 
-    xlsxpath = xlsxfile
+    yaml_obj = yaml.load(open('config.yaml'))
+    tmp_dir = yaml_obj.get('dir')['tmp']
+    data_dir = yaml_obj.get('dir')['data']
+    cal_work_dir = yaml_obj.get('dir')['calc-work']
 
-    if Bucket != "" and key != "":
+    if xlsxfile == "":
 
-        bucket = s3.Bucket(Bucket)
-        obj = s3.Object(Bucket,key)
-
-        yaml_obj = yaml.load(open('config.yaml'))
-        tmp_dir = yaml_obj.get('dir')['tmp']
-        data_dir = yaml_obj.get('dir')['data']
+        bucket = s3.Bucket(BucketName)
+        obj = s3.Object(BucketName,ObjKey)
 
         path = obj.key.split("/")
         filename = path[len(path)-1]
         xlsxpath = os.path.join(tmp_dir, filename)
         obj.download_file(xlsxpath)
 
-    if xlsxfile != "":
+    elif xlsxfile != "":
+        xlsxpath = xlsxfile
+
+    if xlsxpath != "":
         print xlsxpath
 
         try:
@@ -101,11 +103,13 @@ def calc_work_xlsx(Bucket = "", key = "", xlsxfile = ""):
             colxm = yaml_obj.get('sheets')['loadcalc']['colnames']['xm']
             colrq = yaml_obj.get('sheets')['loadcalc']['colnames']['tjrq']
             colbl = yaml_obj.get('sheets')['loadcalc']['colnames']['fhbl']
+            colrr = yaml_obj.get('sheets')['loadcalc']['colnames']['gzrr']
             colzy = yaml_obj.get('sheets')['loadcalc']['colnames']['zybm']
 
-            df = pandas.DataFrame(columns=(colxm, colbh, colmc, colbm, colrq, colbl, colzy))
+            df = pandas.DataFrame(columns=(colxm, colbh, colmc, colbm, colrq, colbl, colrr, colzy))
 
             sheet = workbook.sheet_by_name(yaml_obj.get('sheets')['loadpercent']['sheetname'])
+            sheet2 = workbook.sheet_by_name(yaml_obj.get('sheets')['loadmandays']['sheetname'])
 
             rows = sheet.nrows
             cols = sheet.ncols
@@ -133,12 +137,14 @@ def calc_work_xlsx(Bucket = "", key = "", xlsxfile = ""):
             for i in range(row_offset, rows):
 
                 row = sheet.row(i)
+                row2 = sheet2.row(i)
                 for j in range(col_offset, cols):
                     if type(row[j].value) is float:
                         # if bl != "":
                         bl = row[j].value
+                        rr = row2[j].value
 
-                        if bl > 0.0:
+                        if rr > 0:
 
                             bh = row[1].value
                             mc = row[2].value
@@ -150,25 +156,26 @@ def calc_work_xlsx(Bucket = "", key = "", xlsxfile = ""):
                                 bm = dfpro[colbm].max()
                             if bm == "":
                                 bm = zy
-                            df.loc[len(df)] = [xm, bh, mc, bm, rq, bl, zy]
+                            df.loc[len(df)] = [xm, bh, mc, bm, rq, bl, rr, zy]
 
-            csvname = rq + "-" + divsx + ".csv"
-            csvpath = os.path.join(data_dir, csvname)
-            df.to_csv(csvpath, encoding='utf-8', index=False)
+            csvname = "work-" + rq + "-" + divsx + ".csv"
+            csvpath = os.path.join(cal_work_dir, csvname)
+            df.to_csv(csvpath, encoding='utf8', index=False)
 
             data = open(csvpath, 'rb')
             s3key = "calc/work/" + csvname
-            file_obj = s3.Bucket(Bucket).put_object(Key=s3key, Body=data)
+            file_obj = s3.Bucket(BucketName).put_object(Key=s3key, Body=data)
 
         except Exception as e:
             print(e)
             raise e
 
-def calc_work_zip(Bucket = "", key = ""):
+
+def calc_work_zip(BucketName , ObjKey):
     print "calc_work_zip"
 
-    bucket = s3.Bucket(Bucket)
-    obj = s3.Object(Bucket,key)
+    bucket = s3.Bucket(BucketName)
+    obj = s3.Object(BucketName,ObjKey)
 
     yaml_obj = yaml.load(open('config.yaml'))
     tmp_dir = yaml_obj.get('dir')['tmp']
@@ -176,7 +183,7 @@ def calc_work_zip(Bucket = "", key = ""):
 
     #path = obj.key.split("/")
 
-    filename = key[len("upload/work/"):]
+    filename = ObjKey[len("upload/work/"):]
     print filename
     tmpfile = os.path.join(tmp_dir, filename)
     obj.download_file(tmpfile)
@@ -192,6 +199,11 @@ def calc_work_zip(Bucket = "", key = ""):
             file = open(os.path.join(tmp_dir, filename), 'w+b')
             file.write(data)
             file.close()
+
+
+            calc_work_xlsx(BucketName , ObjKey, file.name)
+
+            """
             workbook = xlrd.open_workbook(file.name)
 
             sheet = workbook.sheet_by_name(yaml_obj.get('sheets')['divlist']['sheetname'])
@@ -281,13 +293,55 @@ def calc_work_zip(Bucket = "", key = ""):
             s3key = "calc/work/" + csvname
             file_obj = s3.Bucket(Bucket).put_object(Key=s3key, Body=data)
 
-            #df.to_csv(os.path.join(data_dir, 'hr_gbk.csv'), encoding='gbk', index=False)\
+            """
 
 
 
 
 
+def stat_work(bucket_name):
 
+    yaml_obj = yaml.load(open('config.yaml'))
+    calc_work_dir = yaml_obj.get('dir')['calc-work']
+    stat_work_dir = yaml_obj.get('dir')['stat-work']
+    calc_work_path = os.path.join(os.path.abspath(os.path.curdir), calc_work_dir)
+    stat_work_path = os.path.join(os.path.abspath(os.path.curdir), stat_work_dir)
+
+    stat_csv = os.path.join(stat_work_path, "stat-work.csv")
+    stat_csv_gbk = os.path.join(stat_work_path, "stat-work-gbk.csv")
+
+    list_csv = os.listdir(calc_work_path)
+    for csv in list_csv:
+        if csv[0] == "." or csv[len(csv)-4:] != ".csv":
+            list_csv.remove(csv)
+    print list_csv
+    ncsv = len(list_csv)
+    if ncsv > 0:
+        csvpath = os.path.join(calc_work_path, list_csv[0])
+        print csvpath
+        dframe = pandas.read_csv(csvpath)
+        print dframe
+
+        if ncsv > 1:
+            for i in range(1, ncsv):
+                csvpath = os.path.join(calc_work_path, list_csv[i])
+                print csvpath
+
+                df_tmp = pandas.read_csv(csvpath)
+                data = [dframe, df_tmp]
+                dframe = pandas.concat(data)
+                print dframe
+
+
+        dframe.to_csv(stat_csv, encoding='utf8', index=False)
+        data = open(stat_csv, 'rb')
+        s3key = "stat/work/stat-work.csv"
+        file_obj = s3.Bucket(bucket_name).put_object(Key=s3key, Body=data)
+
+        dframe.to_csv(stat_csv_gbk, encoding='gbk', index=False)
+        data = open(stat_csv, 'rb')
+        s3key = "stat/work/stat-work-gbk.csv"
+        file_obj = s3.Bucket(bucket_name).put_object(Key=s3key, Body=data)
 
 
 def calc_cost_xlsx(Bucket = "", key = ""):
@@ -544,13 +598,15 @@ def queuehandler():
 
                 if func_name == "upload-work":
                     print func_name
-                    print object_key[len(object_key) - 4]
+
                     if object_key[len(object_key)-4:] == ".zip":
                         print "zip"
                         calc_work_zip(bucket_name, object_key)
                     elif object_key[len(object_key)-5:] == ".xlsx":
                         print "xlsx"
-                        calc_work_xlsx(bucket_name, object_key)
+                        calc_work_xlsx(bucket_name, object_key, "")
+
+                    stat_work(bucket_name)
 
                 elif func_name == "upload-cost":
                     print func_name
@@ -562,6 +618,7 @@ def queuehandler():
                         calc_cost_xlsx(bucket_name, object_key)
                 else:
                     print "NULL"
+
 
                 #print (func_name,  object_key)
 
@@ -576,8 +633,8 @@ def queuehandler():
 
 
 def main():
-    reload(sys)
-    sys.setdefaultencoding('utf8')
+    #reload(sys)
+    #sys.setdefaultencoding('utf8')
 
     while True:
         queuehandler()
