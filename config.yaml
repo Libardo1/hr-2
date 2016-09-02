@@ -3,6 +3,8 @@
 dir:
   data: data
   tmp: tmp
+  calc-work: data/calc-work
+  stat-work: data/stat-work
 
 projects:
   file: project_list.xls
@@ -39,6 +41,10 @@ sheets:
       tjrq: 统计日期
       fhbl: 负荷比例
       zybm: 资源部门
+  loadmandays:
+    sheetname: 工作量
+    clonames:
+      rr: 人日
   loadcalc:
     colnames:
       xm: 姓名
@@ -47,6 +53,7 @@ sheets:
       zbbm: 主办部门
       tjrq: 统计日期
       fhbl: 负荷比例
+      gzrr: 人日数
       zybm: 资源部门
 
 colnames:
