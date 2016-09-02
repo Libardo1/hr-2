@@ -71,7 +71,8 @@ def calc_work_xlsx( BucketName , ObjKey , xlsxfile ):
     if xlsxpath != "":
         print xlsxpath
 
-        try:
+        if True:
+        #try:
 
             workbook = xlrd.open_workbook(xlsxpath)
 
@@ -165,11 +166,11 @@ def calc_work_xlsx( BucketName , ObjKey , xlsxfile ):
             data = open(csvpath, 'rb')
             s3key = "calc/work/" + csvname
             file_obj = s3.Bucket(BucketName).put_object(Key=s3key, Body=data)
-
+        """
         except Exception as e:
             print(e)
             raise e
-
+        """
 
 def calc_work_zip(BucketName , ObjKey):
     print "calc_work_zip"
