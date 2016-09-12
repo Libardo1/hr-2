@@ -54,6 +54,7 @@ def calc_work_xlsx( BucketName , ObjKey , xlsxfile ):
     tmp_dir = yaml_obj.get('dir')['tmp']
     data_dir = yaml_obj.get('dir')['data']
     cal_work_dir = yaml_obj.get('dir')['calc-work']
+    cal_cost_dir = yaml_obj.get('dir')['calc-cost']
 
     if xlsxfile == "":
 
@@ -106,11 +107,13 @@ def calc_work_xlsx( BucketName , ObjKey , xlsxfile ):
             colbl = yaml_obj.get('sheets')['loadcalc']['colnames']['fhbl']
             colrr = yaml_obj.get('sheets')['loadcalc']['colnames']['gzrr']
             colzy = yaml_obj.get('sheets')['loadcalc']['colnames']['zybm']
+            colcb = yaml_obj.get('sheets')['loadcalc']['colnames']['cost']
 
-            df = pandas.DataFrame(columns=(colxm, colbh, colmc, colbm, colrq, colbl, colrr, colzy))
+            df = pandas.DataFrame(columns=(colxm, colbh, colmc, colbm, colrq, colbl, colrr, colzy,colcb))
 
             sheet = workbook.sheet_by_name(yaml_obj.get('sheets')['loadpercent']['sheetname'])
-            sheet2 = workbook.sheet_by_name(yaml_obj.get('sheets')['loadmandays']['sheetname'])
+            sheetdays = workbook.sheet_by_name(yaml_obj.get('sheets')['loadmandays']['sheetname'])
+            sheetcost = workbook.sheet_by_name(yaml_obj.get('sheets')['loadcost']['sheetname'])
 
             rows = sheet.nrows
             cols = sheet.ncols
@@ -138,12 +141,14 @@ def calc_work_xlsx( BucketName , ObjKey , xlsxfile ):
             for i in range(row_offset, rows):
 
                 row = sheet.row(i)
-                row2 = sheet2.row(i)
+                rowdays = sheetdays.row(i)
+                rowcost = sheetcost.row(i)
                 for j in range(col_offset, cols):
                     if type(row[j].value) is float:
                         # if bl != "":
                         bl = row[j].value
-                        rr = row2[j].value
+                        rr = rowdays[j].value
+                        cost = rowcost[j].value
 
                         if rr > 0:
 
@@ -157,15 +162,26 @@ def calc_work_xlsx( BucketName , ObjKey , xlsxfile ):
                                 bm = dfpro[colbm].max()
                             if bm == "":
                                 bm = zy
-                            df.loc[len(df)] = [xm, bh, mc, bm, rq, bl, rr, zy]
+                            df.loc[len(df)] = [xm, bh, mc, bm, rq, bl, rr, zy, cost]
+
+            dfload = df[[colxm, colbh, colmc, colbm, colrq, colbl, colrr, colzy]]
 
             csvname = "work-" + rq + "-" + divsx + ".csv"
             csvpath = os.path.join(cal_work_dir, csvname)
-            df.to_csv(csvpath, encoding='utf8', index=False)
+            dfload.to_csv(csvpath, encoding='utf8', index=False)
 
             data = open(csvpath, 'rb')
             s3key = "calc/work/" + csvname
             file_obj = s3.Bucket(BucketName).put_object(Key=s3key, Body=data)
+
+            csvname = "cost-" + rq + "-" + divsx + ".csv"
+            csvpath = os.path.join(cal_cost_dir, csvname)
+            df.to_csv(csvpath, encoding='utf8', index=False)
+
+            data = open(csvpath, 'rb')
+            s3key = "calc/cost/" + csvname
+            file_obj = s3.Bucket(BucketName).put_object(Key=s3key, Body=data)
+
         """
         except Exception as e:
             print(e)
@@ -308,6 +324,7 @@ def stat_work(bucket_name):
     calc_work_path = os.path.join(os.path.abspath(os.path.curdir), calc_work_dir)
     stat_work_path = os.path.join(os.path.abspath(os.path.curdir), stat_work_dir)
 
+
     stat_csv = os.path.join(stat_work_path, "stat-work.csv")
     stat_csv_gbk = os.path.join(stat_work_path, "stat-work-gbk.csv")
 
@@ -343,6 +360,49 @@ def stat_work(bucket_name):
         data = open(stat_csv, 'rb')
         s3key = "stat/work/stat-work-gbk.csv"
         file_obj = s3.Bucket(bucket_name).put_object(Key=s3key, Body=data)
+
+def stat_cost(bucket_name):
+
+        yaml_obj = yaml.load(open('config.yaml'))
+        calc_dir = yaml_obj.get('dir')['calc-cost']
+        stat_dir = yaml_obj.get('dir')['stat-cost']
+        calc_path = os.path.join(os.path.abspath(os.path.curdir), calc_dir)
+        stat_path = os.path.join(os.path.abspath(os.path.curdir), stat_dir)
+
+        stat_csv = os.path.join(stat_path, "stat-cost.csv")
+        stat_csv_gbk = os.path.join(stat_path, "stat-cost-gbk.csv")
+
+        list_csv = os.listdir(calc_path)
+        for csv in list_csv:
+            if csv[0] == "." or csv[len(csv) - 4:] != ".csv":
+                list_csv.remove(csv)
+        print list_csv
+        ncsv = len(list_csv)
+        if ncsv > 0:
+            csvpath = os.path.join(calc_path, list_csv[0])
+            print csvpath
+            dframe = pandas.read_csv(csvpath)
+            print dframe
+
+            if ncsv > 1:
+                for i in range(1, ncsv):
+                    csvpath = os.path.join(calc_path, list_csv[i])
+                    print csvpath
+
+                    df_tmp = pandas.read_csv(csvpath)
+                    data = [dframe, df_tmp]
+                    dframe = pandas.concat(data)
+                    print dframe
+
+            dframe.to_csv(stat_csv, encoding='utf8', index=False)
+            data = open(stat_csv, 'rb')
+            s3key = "stat/cost/stat-cost.csv"
+            file_obj = s3.Bucket(bucket_name).put_object(Key=s3key, Body=data)
+
+            dframe.to_csv(stat_csv_gbk, encoding='gbk', index=False)
+            data = open(stat_csv, 'rb')
+            s3key = "stat/cost/stat-cost-gbk.csv"
+            file_obj = s3.Bucket(bucket_name).put_object(Key=s3key, Body=data)
 
 
 def calc_cost_xlsx(Bucket = "", key = ""):
@@ -615,6 +675,7 @@ def queuehandler():
                         calc_work_xlsx(bucket_name, object_key, "")
 
                     stat_work(bucket_name)
+                    stat_cost(bucket_name)
 
                 elif func_name == "upload-cost":
                     print func_name

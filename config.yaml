@@ -4,7 +4,9 @@ dir:
   data: data
   tmp: tmp
   calc-work: data/calc-work
+  calc-cost: data/calc-cost
   stat-work: data/stat-work
+  stat-cost: data/stat-cost
 
 projects:
   file: project_list.xls
@@ -45,6 +47,10 @@ sheets:
     sheetname: 工作量
     clonames:
       rr: 人日
+  loadcost:
+    sheetname: 项目人力成本
+    clonames:
+      cost: 成本
   loadcalc:
     colnames:
       xm: 姓名
@@ -55,6 +61,7 @@ sheets:
       fhbl: 负荷比例
       gzrr: 人日数
       zybm: 资源部门
+      cost: 成本
 
 colnames:
   xm: 姓名
